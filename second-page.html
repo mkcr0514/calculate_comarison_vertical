@@ -1,0 +1,536 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.phone-outer { width: 393px; margin: 1.5rem auto; position: relative; }
+.phone-frame { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
+.phone-screen { position: relative; margin: 18px 14px 24px 14px; border-radius: 44px; overflow: hidden; height: 812px; background: var(--color-background-tertiary); display: flex; flex-direction: column; }
+.notch-bar { height: 50px; background: var(--color-background-primary); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; flex-shrink: 0; }
+.notch { width: 120px; height: 30px; background: var(--color-background-primary); border: 1.5px solid var(--color-border-secondary); border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.notch-cam { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--color-border-secondary); }
+.notch-speaker { width: 40px; height: 4px; border-radius: 2px; background: var(--color-border-secondary); }
+.status-bar { height: 20px; background: var(--color-background-primary); display: flex; align-items: center; padding: 0 24px; justify-content: space-between; flex-shrink: 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.status-bar span { font-size: 11px; color: var(--color-text-secondary); font-weight: 500; }
+.nav-bar { height: 48px; background: var(--color-background-primary); display: flex; align-items: center; padding: 0 16px; justify-content: space-between; flex-shrink: 0; border-bottom: 0.5px solid var(--color-border-tertiary); position: relative; }
+.nav-back { font-size: 13px; color: #185FA5; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.nav-back svg { width: 14px; height: 14px; stroke: #185FA5; }
+.nav-title { font-size: 17px; font-weight: 500; color: var(--color-text-primary); position: absolute; left: 50%; transform: translateX(-50%); }
+.nav-actions { display: flex; align-items: center; gap: 8px; min-width: 72px; justify-content: flex-end; }
+.nav-icon-btn { width: 32px; height: 32px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.nav-icon-btn svg { width: 16px; height: 16px; stroke: #185FA5; fill: none; }
+
+.page-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.insured-bar { background: var(--color-background-primary); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--color-border-tertiary); flex-shrink: 0; }
+.insured-label { font-size: 10px; color: var(--color-text-secondary); margin-bottom: 1px; }
+.insured-value { font-size: 12px; color: var(--color-text-primary); font-weight: 500; }
+.edit-btn { font-size: 11px; color: #185FA5; border: 0.5px solid #B5D4F4; border-radius: var(--border-radius-md); padding: 4px 10px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+
+/* sticky compare header — multi product only */
+.sticky-compare-header { background: var(--color-background-primary); border-bottom: 1px solid var(--color-border-secondary); flex-shrink: 0; display: none; }
+.sticky-compare-header.visible { display: block; }
+.sch-row { display: flex; }
+.sch-left { width: 115px; flex-shrink: 0; height: 64px; padding: 8px 10px; border-right: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); }
+.sch-right-wrap { flex: 1; overflow: hidden; }
+.sch-right-inner { display: flex; }
+.sch-cell { width: 110px; flex-shrink: 0; height: 64px; padding: 8px 10px; border-left: 0.5px solid var(--color-border-tertiary); cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; }
+.sch-cell:first-child { border-left: none; }
+.sch-name { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sch-name.active-col { color: #185FA5; }
+.sch-bar { height: 2px; border-radius: 1px; width: 20px; flex-shrink: 0; }
+
+/* scroll zone */
+.scroll-zone { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+.scroll-zone::-webkit-scrollbar { display: none; }
+
+/* single product header */
+.single-product-header { background: var(--color-background-primary); padding: 12px 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.single-product-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); line-height: 1.5; flex: 1; }
+.compare-cta { font-size: 11px; color: #185FA5; white-space: nowrap; cursor: pointer; flex-shrink: 0; border: 0.5px solid #B5D4F4; border-radius: var(--border-radius-md); padding: 5px 10px; margin-top: 2px; }
+
+/* multi product tabs */
+.ptab-section { background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); }
+.ptab-bar { display: flex; width: 100%; }
+.ptab { flex: 1; padding: 9px 8px; font-size: 12px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; display: flex; align-items: center; justify-content: space-between; min-width: 0; gap: 4px; }
+.ptab.active { color: #185FA5; border-bottom-color: #378ADD; }
+.ptab-left { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.ptab-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.undot { width: 6px; height: 6px; border-radius: 50%; background: #E24B4A; flex-shrink: 0; }
+.ptab.filled .undot { display: none; }
+.ptab-x { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--color-background-secondary); cursor: pointer; flex-shrink: 0; margin-left: auto; }
+.ptab-x svg { width: 8px; height: 8px; stroke: var(--color-text-secondary); }
+.add-tab { padding: 9px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid transparent; flex-shrink: 0; }
+.add-icon-circle { width: 20px; height: 20px; border-radius: 50%; background: #E6F1FB; border: 1px solid #B5D4F4; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #185FA5; line-height: 1; }
+
+/* fill zone */
+.fill-zone { background: var(--color-background-primary); border-bottom: 8px solid var(--color-background-tertiary); }
+.fill-card { padding: 14px 16px; }
+.fill-product-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); line-height: 1.4; margin-bottom: 12px; }
+.fields-row { display: flex; gap: 10px; margin-bottom: 4px; }
+.field-block { flex: 1; min-width: 0; }
+.field-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 5px; }
+.field-select-wrap { position: relative; }
+.field-select-wrap::after { content: '∨'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 10px; color: #1D9E75; pointer-events: none; }
+.f-select { width: 100%; padding: 9px 28px 9px 10px; border: 1px solid var(--color-border-secondary); border-radius: 10px; font-size: 13px; color: var(--color-text-secondary); background: var(--color-background-primary); appearance: none; -webkit-appearance: none; outline: none; }
+.f-select:focus { border-color: #1D9E75; color: var(--color-text-primary); }
+.f-select.err { border-color: #E24B4A; }
+.amount-wrap { position: relative; }
+.f-input { width: 100%; padding: 9px 28px 9px 10px; border: 1px solid var(--color-border-secondary); border-radius: 10px; font-size: 13px; color: var(--color-text-primary); background: var(--color-background-primary); outline: none; }
+.f-input:focus { border-color: #1D9E75; }
+.f-input.err { border-color: #E24B4A; }
+.f-input::placeholder { color: var(--color-text-secondary); }
+.amount-unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--color-text-secondary); pointer-events: none; }
+.fields-feedback { display: flex; gap: 10px; margin-bottom: 6px; }
+.field-feedback { flex: 1; height: 14px; font-size: 10px; color: #E24B4A; line-height: 14px; }
+.confirm-btn { width: 100%; padding: 11px; background: #1D9E75; color: white; border: none; border-radius: 24px; font-size: 14px; font-weight: 500; cursor: pointer; }
+.confirm-btn:disabled { background: var(--color-background-secondary); color: var(--color-text-secondary); cursor: not-allowed; }
+.display-fields { display: flex; gap: 10px; cursor: pointer; }
+.display-block { flex: 1; min-width: 0; }
+.display-val { width: 100%; padding: 9px 10px; border: 1px solid var(--color-border-secondary); border-radius: 10px; font-size: 13px; color: var(--color-text-primary); text-align: center; background: var(--color-background-primary); }
+.annual-display { font-size: 11px; color: var(--color-text-secondary); margin-top: 8px; text-align: right; }
+.annual-display span { color: #185FA5; font-weight: 500; }
+
+/* ── SINGLE PRODUCT: category tabs + list ── */
+.cat-tab-bar { background: var(--color-background-primary); display: flex; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.cat-tab { flex: 1; padding: 10px 4px; font-size: 12px; color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; text-align: center; }
+.cat-tab.active { color: #185FA5; font-weight: 500; border-bottom-color: #378ADD; }
+
+.single-list { background: var(--color-background-primary); }
+.single-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.single-row:last-child { border-bottom: none; }
+.single-row-label { font-size: 13px; color: var(--color-text-primary); }
+.single-row-val { font-size: 15px; font-weight: 500; color: var(--color-text-primary); text-align: right; }
+.single-row-unit { font-size: 11px; color: var(--color-text-secondary); margin-left: 2px; }
+.single-row-none { font-size: 13px; color: var(--color-text-secondary); }
+.single-row-empty { font-size: 13px; color: var(--color-border-secondary); }
+
+/* ── MULTI PRODUCT: compare table ── */
+.inline-compare-header { background: var(--color-background-primary); border-bottom: 1px solid var(--color-border-secondary); }
+.ich-row { display: flex; }
+.ich-left { width: 115px; flex-shrink: 0; height: 64px; padding: 8px 10px; border-right: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); }
+.ich-right-wrap { flex: 1; overflow: hidden; }
+.ich-right-inner { display: flex; }
+.ich-cell { width: 110px; flex-shrink: 0; height: 64px; padding: 8px 10px; border-left: 0.5px solid var(--color-border-tertiary); cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; }
+.ich-cell:first-child { border-left: none; }
+.ich-name { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ich-name.active-col { color: #185FA5; }
+.ich-bar { height: 2px; border-radius: 1px; width: 20px; flex-shrink: 0; }
+
+.matrix-toolbar { background: var(--color-background-primary); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.diff-wrap { display: flex; align-items: center; gap: 5px; }
+.diff-label { font-size: 11px; color: var(--color-text-secondary); white-space: nowrap; }
+.diff-label.on { color: var(--color-text-primary); }
+.dtog { width: 28px; height: 16px; border-radius: 8px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); position: relative; flex-shrink: 0; transition: background 0.15s; }
+.dtog.can { cursor: pointer; }
+.dtog.disabled-tog { opacity: 0.3; }
+.dtog.on { background: #378ADD; border-color: #378ADD; }
+.dtog-dot { width: 12px; height: 12px; border-radius: 50%; background: white; position: absolute; top: 1px; left: 1px; transition: left 0.15s; }
+.dtog.on .dtog-dot { left: 14px; }
+
+.matrix-table { display: flex; }
+.left-col { width: 115px; flex-shrink: 0; }
+.right-scroll { flex: 1; overflow-x: auto; scrollbar-width: none; }
+.right-scroll::-webkit-scrollbar { display: none; }
+.right-inner { display: flex; flex-direction: column; }
+.left-section-row { height: 36px; background: var(--color-background-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); border-right: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; padding: 0 10px; font-size: 12px; font-weight: 500; color: var(--color-text-primary); cursor: pointer; justify-content: space-between; }
+.left-section-btn { font-size: 12px; color: var(--color-text-secondary); }
+.left-data-row { height: 64px; background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); border-right: 0.5px solid var(--color-border-tertiary); padding: 8px 10px; display: flex; align-items: center; }
+.left-label { font-size: 11px; color: var(--color-text-primary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.right-section-row { display: flex; }
+.right-section-cell { width: 110px; flex-shrink: 0; height: 36px; background: var(--color-background-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); border-left: 0.5px solid var(--color-border-tertiary); }
+.right-section-cell:first-child { border-left: none; }
+.right-data-row { display: flex; }
+.right-data-cell { width: 110px; flex-shrink: 0; height: 64px; background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); border-left: 0.5px solid var(--color-border-tertiary); padding: 8px 10px; display: flex; flex-direction: column; justify-content: center; cursor: pointer; }
+.right-data-cell:first-child { border-left: none; }
+.right-data-cell.active-cell { background: #E6F1FB; }
+.cell-amt { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.right-data-cell.active-cell .cell-amt { color: #185FA5; }
+.cell-unit { font-size: 10px; color: var(--color-text-secondary); margin-top: 2px; }
+.cell-none { font-size: 12px; color: var(--color-text-secondary); }
+.cell-dash { font-size: 12px; color: var(--color-border-secondary); }
+.empty-hint { padding: 24px 16px; text-align: center; font-size: 12px; color: var(--color-text-secondary); line-height: 1.9; background: var(--color-background-primary); }
+
+.overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: flex-end; z-index: 20; border-radius: 44px; overflow: hidden; }
+.overlay.open { display: flex; }
+.sheet { width: 100%; background: var(--color-background-primary); border-radius: 20px 20px 0 0; padding: 16px; max-height: 80%; overflow-y: auto; }
+.sheet-handle { width: 36px; height: 4px; background: var(--color-border-primary); border-radius: 2px; margin: 0 auto 14px; }
+.sheet-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+.sheet-sub { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 14px; }
+.modal-item { padding: 12px 0; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.modal-item:last-child { border-bottom: none; }
+.mcheck { width: 18px; height: 18px; border: 1.5px solid var(--color-border-secondary); border-radius: 3px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+.mcheck.checked { background: #378ADD; border-color: #378ADD; }
+.mcheck.checked::after { content: ''; width: 10px; height: 6px; border-left: 2px solid white; border-bottom: 2px solid white; transform: rotate(-45deg) translateY(-1px); display: block; }
+.mpname { font-size: 13px; font-weight: 500; color: var(--color-text-primary); line-height: 1.4; margin-bottom: 3px; }
+.mpmeta { font-size: 11px; color: var(--color-text-secondary); }
+.sheet-btn { width: 100%; margin-top: 14px; padding: 12px; background: #378ADD; color: white; border: none; border-radius: var(--border-radius-md); font-size: 14px; font-weight: 500; cursor: pointer; }
+.sheet-btn:disabled { background: var(--color-background-secondary); color: var(--color-text-secondary); cursor: not-allowed; }
+.sheet-btn-ghost { width: 100%; margin-top: 8px; padding: 12px; background: transparent; color: var(--color-text-secondary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 14px; cursor: pointer; }
+.dialog-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 30; padding: 32px; border-radius: 44px; }
+.dialog-overlay.open { display: flex; }
+.dialog { background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 20px; width: 100%; }
+.dialog-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 8px; }
+.dialog-body { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 16px; }
+.dialog-body strong { color: var(--color-text-primary); font-weight: 500; }
+.dialog-btns { display: flex; gap: 8px; }
+.dialog-cancel { flex: 1; padding: 10px; background: var(--color-background-secondary); color: var(--color-text-primary); border: none; border-radius: var(--border-radius-md); font-size: 14px; cursor: pointer; }
+.dialog-confirm { flex: 1; padding: 10px; background: #E24B4A; color: white; border: none; border-radius: var(--border-radius-md); font-size: 14px; font-weight: 500; cursor: pointer; }
+.home-indicator { height: 30px; background: var(--color-background-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.home-bar { width: 120px; height: 4px; background: var(--color-border-primary); border-radius: 2px; }
+</style>
+
+<h2 class="sr-only">保險商品試算橫向比較版 v6，單商品縱向列表，多商品橫向矩陣</h2>
+
+<div style="padding:1rem 0;">
+<div class="phone-outer">
+  <svg class="phone-frame" viewBox="0 0 393 880" fill="none">
+    <rect x="1" y="1" width="391" height="878" rx="54" ry="54" stroke="var(--color-border-primary)" stroke-width="2" fill="none"/>
+    <rect x="14" y="18" width="365" height="844" rx="44" ry="44" stroke="var(--color-border-tertiary)" stroke-width="1" fill="none"/>
+    <rect x="-2" y="160" width="4" height="36" rx="2" fill="var(--color-border-secondary)"/>
+    <rect x="-2" y="210" width="4" height="60" rx="2" fill="var(--color-border-secondary)"/>
+    <rect x="-2" y="284" width="4" height="60" rx="2" fill="var(--color-border-secondary)"/>
+    <rect x="391" y="220" width="4" height="80" rx="2" fill="var(--color-border-secondary)"/>
+  </svg>
+
+  <div class="phone-screen">
+    <div class="notch-bar"><div class="notch"><div class="notch-cam"></div><div class="notch-speaker"></div></div></div>
+    <div class="status-bar"><span>9:41</span><span>100%</span></div>
+    <div class="nav-bar">
+      <div class="nav-back"><svg viewBox="0 0 14 14" fill="none" stroke-width="1.5"><polyline points="9,2 4,7 9,12"/></svg>返回</div>
+      <span class="nav-title">商品試算</span>
+      <div class="nav-actions" id="nav-actions"></div>
+    </div>
+
+    <div class="page-body">
+      <div class="insured-bar">
+        <div><div class="insured-label">被保險人資料</div><div class="insured-value">2000/01/01・女性・第一類</div></div>
+        <div class="edit-btn">編輯</div>
+      </div>
+
+      <!-- sticky compare header, multi only -->
+      <div class="sticky-compare-header" id="sticky-compare-header">
+        <div class="sch-row">
+          <div class="sch-left">保障項目</div>
+          <div class="sch-right-wrap"><div class="sch-right-inner" id="sch-right-inner"></div></div>
+        </div>
+      </div>
+
+      <div class="scroll-zone" id="scroll-zone">
+        <div id="product-header-area"></div>
+        <div class="fill-zone"><div class="fill-card" id="fill-card"></div></div>
+        <div id="content-area"></div>
+        <div style="height:24px;"></div>
+      </div>
+    </div>
+
+    <div class="home-indicator"><div class="home-bar"></div></div>
+
+    <div class="overlay" id="add-overlay">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">比較同類商品</div>
+        <div class="sheet-sub" id="add-sub"></div>
+        <div id="add-list"></div>
+        <button class="sheet-btn" id="add-confirm-btn" disabled>加入比較</button>
+        <button class="sheet-btn-ghost" id="add-cancel-btn">取消</button>
+      </div>
+    </div>
+    <div class="dialog-overlay" id="del-dialog">
+      <div class="dialog">
+        <div class="dialog-title">移除商品</div>
+        <div class="dialog-body" id="del-body"></div>
+        <div class="dialog-btns">
+          <button class="dialog-cancel" id="del-cancel">取消</button>
+          <button class="dialog-confirm" id="del-confirm">確認移除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const allProducts=[
+  {id:0,full:'真大心PLUS住院醫療健康保險附約（外溢型）',color:'#378ADD',ph:'500–3,000元',min:500,max:3000,fakeBase:3840,
+   ratios:{daily:1,icu:2,discharge:0.5,home:0.4,transfer:15,early:25,first:100,heavy:50,specific:150,low:10,care:2.5,chemo:15,radio:15,target:25,marrow:100,chemorad:1.5,hospice:1,surgery:25,opd:0.25,prepost:0.25,er:0.75}},
+  {id:1,full:'心安PLUS手術醫療定期健康保險附約（外溢型）',color:'#1D9E75',ph:'500–2,000元',min:500,max:2000,fakeBase:2560,
+   ratios:{daily:1,icu:1.5,discharge:0.5,home:null,transfer:15,early:15,first:100,heavy:40,specific:null,low:10,care:2,chemo:12,radio:15,target:null,marrow:75,chemorad:1.5,hospice:0.75,surgery:20,opd:0.2,prepost:0.2,er:0.75}},
+  {id:2,full:'樂順心手術醫療定期健康保險（外溢型）',color:'#D85A30',ph:'500–3,000元',min:500,max:3000,fakeBase:2140,
+   ratios:{daily:1,icu:null,discharge:0.5,home:0.25,transfer:15,early:null,first:100,heavy:30,specific:100,low:null,care:1.5,chemo:10,radio:15,target:20,marrow:null,chemorad:1.5,hospice:null,surgery:15,opd:null,prepost:0.15,er:0.75}},
+];
+const tabNames=['商品一','商品二','商品三'];
+const cats=[
+  {key:'hospital',label:'住院',keys:['daily','icu','discharge','home','transfer']},
+  {key:'cancer',label:'癌症保障',keys:['early','first','heavy','specific','low','care']},
+  {key:'treatment',label:'治療項目',keys:['chemo','radio','target','marrow','chemorad','hospice']},
+  {key:'outpatient',label:'門急診',keys:['surgery','opd','prepost','er']},
+];
+const keyLabels={daily:'住院日額保險金',icu:'每日加護病房',discharge:'出院療養金',home:'在家療養金',transfer:'緊急醫療轉送',early:'初期或輕度癌症保險金',first:'初次罹癌',heavy:'重度癌症保險金',specific:'初次罹患特定癌症',low:'低侵襲性癌症保險金',care:'癌症照護保險金',chemo:'化學治療',radio:'放射線醫療',target:'標靶治療',marrow:'骨髓移植',chemorad:'化療或放療',hospice:'安寧療護',surgery:'癌症住院手術',opd:'門診保險金',prepost:'住院前後門診',er:'急診保險金'};
+const keyUnits={daily:'/日',icu:'/日',discharge:'/日',home:'/日',transfer:'/次',early:'/次',first:'/次',heavy:'/次',specific:'/次',low:'/次',care:'/月',chemo:'/次',radio:'/次',target:'/次',marrow:'/次',chemorad:'/日',hospice:'/日',surgery:'/次',opd:'/次',prepost:'/次',er:'/次'};
+
+let activeProducts=[allProducts[0]];
+let activePIdx=0,filledAmounts={},editingMode={};
+let collapsedSections={},diffMode=false,addSelected=[],pendingDeleteId=null;
+let activeSingleCat='hospital';
+
+function getVal(pid,key){const amt=filledAmounts[pid];if(!amt)return null;const r=allProducts[pid].ratios[key];if(r===null)return'none';return{amt:(Math.round(amt*r/100)*100).toLocaleString(),unit:keyUnits[key]};}
+function allFilled(){return activeProducts.length>1&&activeProducts.every(p=>filledAmounts[p.id]);}
+function anyFilled(){return activeProducts.some(p=>filledAmounts[p.id]);}
+function isSame(key){if(activeProducts.length<2||!activeProducts.every(p=>filledAmounts[p.id]))return false;const vals=activeProducts.map(p=>{const r=p.ratios[key];return r===null?null:Math.round(filledAmounts[p.id]*r/100)*100;});if(vals.some(v=>v===null))return false;return vals.every(v=>v===vals[0]);}
+function fakeAnnual(pid){const amt=filledAmounts[pid];if(!amt)return null;return Math.round(allProducts[pid].fakeBase*(amt/500)).toLocaleString();}
+const isSingle=()=>activeProducts.length===1;
+
+function syncScroll(){
+  const rs=document.getElementById('right-scroll');
+  if(!rs)return;
+  const schWrap=document.querySelector('.sch-right-wrap');
+  const ichWrap=document.querySelector('.ich-right-wrap');
+  rs.addEventListener('scroll',()=>{
+    if(schWrap)schWrap.scrollLeft=rs.scrollLeft;
+    if(ichWrap)ichWrap.scrollLeft=rs.scrollLeft;
+  });
+}
+
+function setupScrollSpy(){
+  const scrollZone=document.getElementById('scroll-zone');
+  const stickyHeader=document.getElementById('sticky-compare-header');
+  scrollZone.addEventListener('scroll',()=>{
+    if(isSingle()){stickyHeader.classList.remove('visible');return;}
+    const inlineHeader=document.getElementById('inline-compare-header');
+    if(!inlineHeader){stickyHeader.classList.remove('visible');return;}
+    const inlineTop=inlineHeader.getBoundingClientRect().top;
+    const zoneTop=scrollZone.getBoundingClientRect().top;
+    if(inlineTop<=zoneTop){stickyHeader.classList.add('visible');}
+    else{stickyHeader.classList.remove('visible');}
+  });
+}
+
+function updateNavActions(){
+  const a=document.getElementById('nav-actions');
+  if(!anyFilled()){a.innerHTML='';return;}
+  a.innerHTML=`<div class="nav-icon-btn"><svg viewBox="0 0 16 16" stroke-width="1.5"><path d="M3,14L3,9L13,9L13,14"/><path d="M5,2L5,6L11,6"/><line x1="8" y1="2" x2="8" y2="6"/></svg></div><div class="nav-icon-btn"><svg viewBox="0 0 16 16" stroke-width="1.5"><path d="M8,2L8,10"/><polyline points="5,5 8,2 11,5"/><path d="M4,7L3,7C2.4,7 2,7.4 2,8L2,13C2,13.6 2.4,14 3,14L13,14C13.6,14 14,13.6 14,13L14,8C14,7.4 13.6,7 13,7L12,7"/></svg></div>`;
+}
+
+function setActiveProduct(idx){activePIdx=idx;renderAll();}
+
+function renderStickyCompareHeader(){
+  const inner=document.getElementById('sch-right-inner');
+  inner.innerHTML='';
+  activeProducts.forEach((p,i)=>{
+    const cell=document.createElement('div');cell.className='sch-cell';
+    cell.innerHTML=`<div class="sch-name${i===activePIdx?' active-col':''}">${p.full}</div><div class="sch-bar" style="background:${p.color}"></div>`;
+    cell.addEventListener('click',()=>setActiveProduct(i));
+    inner.appendChild(cell);
+  });
+  document.getElementById('sticky-compare-header').style.display=isSingle()?'none':'';
+}
+
+function renderProductHeader(){
+  const area=document.getElementById('product-header-area');
+  if(isSingle()){
+    area.innerHTML=`<div class="single-product-header"><div class="single-product-name">${activeProducts[0].full}</div><div class="compare-cta" id="sc">比較同類商品</div></div>`;
+    document.getElementById('sc').addEventListener('click',openAddModal);
+  } else {
+    const wrap=document.createElement('div');wrap.className='ptab-section';
+    const bar=document.createElement('div');bar.className='ptab-bar';
+    activeProducts.forEach((p,i)=>{
+      const t=document.createElement('div');
+      const isFilled=!!filledAmounts[p.id];const isActive=i===activePIdx;
+      t.className=`ptab${isActive?' active':''}${isFilled?' filled':''}`;
+      t.innerHTML=`<div class="ptab-left"><span class="ptab-label">${tabNames[i]}</span>${!isFilled?'<span class="undot"></span>':''}</div>${isActive?`<span class="ptab-x" data-id="${p.id}"><svg viewBox="0 0 8 8" fill="none" stroke-width="1.5"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></span>`:''}`;
+      t.addEventListener('click',(e)=>{if(e.target.closest('.ptab-x'))return;setActiveProduct(i);});
+      const x=t.querySelector('.ptab-x');
+      if(x){x.addEventListener('click',(e)=>{e.stopPropagation();pendingDeleteId=parseInt(x.dataset.id);const prod=allProducts[pendingDeleteId];document.getElementById('del-body').innerHTML=`確定要移除「<strong>${prod.full}</strong>」嗎？已填寫的條件將會清除。`;document.getElementById('del-dialog').classList.add('open');});}
+      bar.appendChild(t);
+    });
+    if(activeProducts.length<3){const addT=document.createElement('div');addT.className='add-tab';addT.innerHTML=`<div class="add-icon-circle">+</div>`;addT.addEventListener('click',openAddModal);bar.appendChild(addT);}
+    wrap.appendChild(bar);area.innerHTML='';area.appendChild(wrap);
+  }
+}
+
+function renderFillCard(){
+  const p=activeProducts[activePIdx];const pid=p.id;
+  const isEditing=editingMode[pid]||!filledAmounts[pid];
+  const showName=!isSingle();
+  const card=document.getElementById('fill-card');
+  if(isEditing){
+    card.innerHTML=`${showName?`<div class="fill-product-name">${p.full}</div>`:''}<div class="fields-row"><div class="field-block"><div class="field-label">繳費年期</div><div class="field-select-wrap"><select class="f-select" id="f-period"><option value="">請選擇</option><option>10年期</option><option>20年期</option><option>30年期</option><option>終身繳</option></select></div></div><div class="field-block"><div class="field-label">保額／日額</div><div class="amount-wrap"><input class="f-input" id="f-amount" type="number" placeholder="${p.ph}" value="${filledAmounts[pid]||''}"><span class="amount-unit">元</span></div></div></div><div class="fields-feedback"><div class="field-feedback" id="fb-period"></div><div class="field-feedback" id="fb-amount"></div></div><button class="confirm-btn" id="confirm-btn" disabled>確認</button>`;
+    const sel=card.querySelector('#f-period');const inp=card.querySelector('#f-amount');const btn=card.querySelector('#confirm-btn');
+    function chk(){btn.disabled=!sel.value||!inp.value;}
+    sel.addEventListener('change',chk);inp.addEventListener('input',chk);
+    btn.addEventListener('click',()=>{
+      const period=sel.value;const amt=parseInt(inp.value);let ok=true;
+      if(!period){card.querySelector('#fb-period').textContent='請選擇繳費年期';sel.classList.add('err');ok=false;}else{card.querySelector('#fb-period').textContent='';sel.classList.remove('err');}
+      if(!amt||amt<p.min||amt>p.max||amt%100!==0){card.querySelector('#fb-amount').textContent=`請輸入 ${p.min}–${p.max} 元`;inp.classList.add('err');ok=false;}else{card.querySelector('#fb-amount').textContent='';inp.classList.remove('err');}
+      if(!ok)return;
+      filledAmounts[pid]=amt;editingMode[pid]=false;
+      if(activePIdx<activeProducts.length-1)activePIdx++;
+      renderAll();updateNavActions();
+    });
+  } else {
+    const annual=fakeAnnual(pid);
+    card.innerHTML=`${showName?`<div class="fill-product-name">${p.full}</div>`:''}<div class="display-fields" id="df"><div class="display-block"><div class="field-label">繳費年期</div><div class="display-val">20年期</div></div><div class="display-block"><div class="field-label">保額／日額</div><div class="display-val">${filledAmounts[pid].toLocaleString()} 元</div></div></div>${annual?`<div class="annual-display">年繳保費 <span>${annual} 元</span></div>`:''}`;
+    card.querySelector('#df').addEventListener('click',()=>{editingMode[pid]=true;renderFillCard();});
+  }
+}
+
+function renderContentArea(){
+  const area=document.getElementById('content-area');
+  area.innerHTML='';
+  if(isSingle()){
+    renderSingleContent(area);
+  } else {
+    renderMultiContent(area);
+  }
+  setTimeout(()=>syncScroll(),50);
+}
+
+function renderSingleContent(area){
+  const p=activeProducts[0];
+  const pid=p.id;
+  // cat tabs
+  const tabBar=document.createElement('div');tabBar.className='cat-tab-bar';
+  cats.forEach(cat=>{
+    const t=document.createElement('div');t.className=`cat-tab${cat.key===activeSingleCat?' active':''}`;
+    t.textContent=cat.label;
+    t.addEventListener('click',()=>{activeSingleCat=cat.key;renderContentArea();});
+    tabBar.appendChild(t);
+  });
+  area.appendChild(tabBar);
+
+  if(!filledAmounts[pid]){
+    const hint=document.createElement('div');hint.className='empty-hint';hint.textContent='請填寫上方繳費年期與保額即可顯示保障金額';
+    area.appendChild(hint);return;
+  }
+
+  const list=document.createElement('div');list.className='single-list';
+  const cat=cats.find(c=>c.key===activeSingleCat);
+  cat.keys.forEach(key=>{
+    const v=getVal(pid,key);
+    const row=document.createElement('div');row.className='single-row';
+    let valHtml='';
+    if(v===null)valHtml=`<span class="single-row-empty">–</span>`;
+    else if(v==='none')valHtml=`<span class="single-row-none">不含</span>`;
+    else valHtml=`<span class="single-row-val">${v.amt}<span class="single-row-unit">${v.unit}</span></span>`;
+    row.innerHTML=`<span class="single-row-label">${keyLabels[key]}</span>${valHtml}`;
+    list.appendChild(row);
+  });
+  area.appendChild(list);
+}
+
+function renderMultiContent(area){
+  // inline compare header
+  const ich=document.createElement('div');ich.className='inline-compare-header';ich.id='inline-compare-header';
+  const ichRow=document.createElement('div');ichRow.className='ich-row';
+  const ichLeft=document.createElement('div');ichLeft.className='ich-left';ichLeft.textContent='保障項目';
+  const ichRightWrap=document.createElement('div');ichRightWrap.className='ich-right-wrap';
+  const ichRightInner=document.createElement('div');ichRightInner.className='ich-right-inner';
+  activeProducts.forEach((p,i)=>{
+    const cell=document.createElement('div');cell.className='ich-cell';
+    cell.innerHTML=`<div class="ich-name${i===activePIdx?' active-col':''}">${p.full}</div><div class="ich-bar" style="background:${p.color}"></div>`;
+    cell.addEventListener('click',()=>setActiveProduct(i));
+    ichRightInner.appendChild(cell);
+  });
+  ichRightWrap.appendChild(ichRightInner);ichRow.appendChild(ichLeft);ichRow.appendChild(ichRightWrap);ich.appendChild(ichRow);
+  area.appendChild(ich);
+
+  // toolbar
+  const toolbar=document.createElement('div');toolbar.className='matrix-toolbar';
+  toolbar.innerHTML=`<span style="font-size:12px;font-weight:500;color:var(--color-text-primary);">保障內容比較</span><div class="diff-wrap" id="diff-wrap"><span class="diff-label${allFilled()?' on':''}" id="diff-label">只看差異</span><div class="dtog${allFilled()?' can':''}${!allFilled()?' disabled-tog':''}${diffMode?' on':''}" id="dtog"><div class="dtog-dot" style="left:${diffMode?'14px':'1px'}"></div></div></div>`;
+  area.appendChild(toolbar);
+
+  const tog=toolbar.querySelector('#dtog');
+  tog.addEventListener('click',()=>{if(!allFilled())return;diffMode=!diffMode;tog.classList.toggle('on',diffMode);tog.querySelector('.dtog-dot').style.left=diffMode?'14px':'1px';renderContentArea();});
+
+  // matrix
+  const matrix=document.createElement('div');matrix.className='matrix-table';
+  const lc=document.createElement('div');lc.className='left-col';
+  const rs=document.createElement('div');rs.className='right-scroll';rs.id='right-scroll';
+  const ri=document.createElement('div');ri.className='right-inner';
+
+  if(!anyFilled()){
+    ri.innerHTML=`<div class="empty-hint" style="min-width:${activeProducts.length*110}px;">請填寫上方保額與年期<br>即可顯示保障比較</div>`;
+  } else {
+    cats.forEach(cat=>{
+      const isCol=!!collapsedSections[cat.key];
+      const ls=document.createElement('div');ls.className='left-section-row';
+      ls.innerHTML=`<span>${cat.label}</span><span class="left-section-btn">${isCol?'+':'−'}</span>`;
+      ls.addEventListener('click',()=>{collapsedSections[cat.key]=!collapsedSections[cat.key];renderContentArea();});
+      lc.appendChild(ls);
+      const rsr=document.createElement('div');rsr.className='right-section-row';
+      activeProducts.forEach(()=>{rsr.innerHTML+=`<div class="right-section-cell"></div>`;});
+      ri.appendChild(rsr);
+      if(!isCol){
+        cat.keys.forEach(key=>{
+          const same=isSame(key);
+          if(diffMode&&same)return;
+          const lr=document.createElement('div');lr.className='left-data-row';
+          lr.innerHTML=`<span class="left-label">${keyLabels[key]}</span>`;
+          lc.appendChild(lr);
+          const rr=document.createElement('div');rr.className='right-data-row';
+          activeProducts.forEach((p,i)=>{
+            const v=getVal(p.id,key);
+            const cell=document.createElement('div');
+            cell.className=`right-data-cell${i===activePIdx?' active-cell':''}`;
+            cell.dataset.pidx=i;
+            if(!filledAmounts[p.id])cell.innerHTML=`<span class="cell-dash">–</span>`;
+            else if(v==='none')cell.innerHTML=`<span class="cell-none">－</span>`;
+            else cell.innerHTML=`<div class="cell-amt">${v.amt}</div><div class="cell-unit">${v.unit}</div>`;
+            cell.addEventListener('click',()=>setActiveProduct(i));
+            rr.appendChild(cell);
+          });
+          ri.appendChild(rr);
+        });
+      }
+    });
+  }
+  rs.appendChild(ri);matrix.appendChild(lc);matrix.appendChild(rs);area.appendChild(matrix);
+}
+
+function renderAll(){
+  renderStickyCompareHeader();
+  renderProductHeader();
+  renderFillCard();
+  renderContentArea();
+}
+
+function openAddModal(){
+  addSelected=[];
+  const available=allProducts.filter(p=>!activeProducts.find(ap=>ap.id===p.id));
+  const maxAdd=3-activeProducts.length;
+  document.getElementById('add-sub').textContent=`請勾選至多 ${maxAdd} 個商品`;
+  const list=document.getElementById('add-list');list.innerHTML='';
+  available.forEach(p=>{
+    const item=document.createElement('div');item.className='modal-item';
+    item.innerHTML=`<div class="mcheck" data-id="${p.id}"></div><div><div class="mpname">${p.full}</div><div class="mpmeta">主約・外溢型</div></div>`;
+    item.addEventListener('click',()=>{
+      const idx=addSelected.indexOf(p.id);
+      if(idx>-1){addSelected.splice(idx,1);item.querySelector('.mcheck').classList.remove('checked');}
+      else if(addSelected.length<maxAdd){addSelected.push(p.id);item.querySelector('.mcheck').classList.add('checked');}
+      document.getElementById('add-confirm-btn').disabled=addSelected.length===0;
+    });
+    list.appendChild(item);
+  });
+  document.getElementById('add-confirm-btn').disabled=true;
+  document.getElementById('add-overlay').classList.add('open');
+}
+
+document.getElementById('add-confirm-btn').addEventListener('click',()=>{
+  addSelected.forEach(id=>activeProducts.push(allProducts[id]));
+  activePIdx=activeProducts.length-addSelected.length;
+  document.getElementById('add-overlay').classList.remove('open');
+  renderAll();
+});
+document.getElementById('add-cancel-btn').addEventListener('click',()=>document.getElementById('add-overlay').classList.remove('open'));
+document.getElementById('add-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('add-overlay'))document.getElementById('add-overlay').classList.remove('open');});
+document.getElementById('del-cancel').addEventListener('click',()=>{document.getElementById('del-dialog').classList.remove('open');pendingDeleteId=null;});
+document.getElementById('del-confirm').addEventListener('click',()=>{
+  if(pendingDeleteId===null)return;
+  activeProducts=activeProducts.filter(p=>p.id!==pendingDeleteId);
+  delete filledAmounts[pendingDeleteId];delete editingMode[pendingDeleteId];
+  activePIdx=Math.min(activePIdx,activeProducts.length-1);
+  document.getElementById('del-dialog').classList.remove('open');pendingDeleteId=null;
+  renderAll();updateNavActions();
+});
+
+setupScrollSpy();
+renderAll();updateNavActions();
+</script>
